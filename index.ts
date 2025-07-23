@@ -9,7 +9,7 @@ dotenv.config();
 
 app.use(
     cors({
-        origin: `${process.env.API_BASE_URL}${process.env.PORT}`,
+        origin: `${process.env.API_BASE_URL}`,
         credentials: true,
     })
 );

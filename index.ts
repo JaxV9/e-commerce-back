@@ -2,9 +2,9 @@ import cors from "cors";
 import express from "express";
 import dotenv from "dotenv";
 import { Utils } from "./utils";
-import { UserController } from "./controllers/user.controller";
 import { PrismaClient } from "@prisma/client";
 import cookieParser from "cookie-parser";
+import { UserController } from "./controllers/user.controller";
 
 const app = express();
 dotenv.config();

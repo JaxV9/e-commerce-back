@@ -1,7 +1,7 @@
 {
   "name": "e-commerce",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
     "dev": "ts-node index.ts",
     "test": "jest",

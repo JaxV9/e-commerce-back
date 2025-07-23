@@ -15,6 +15,10 @@ app.use(
 );
 app.use(express.json());
 
+app.get("/", (req, res) => {
+    res.send("Welcome to the REST API!");
+}
+);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>

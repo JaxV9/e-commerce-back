@@ -3,6 +3,7 @@ node_modules
 .idea
 .env
 
+/generated/prisma
 #amplify-do-not-edit-begin
 amplify/\#current-cloud-backend
 amplify/.config/local-*

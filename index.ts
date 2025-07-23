@@ -34,34 +34,34 @@ app.get("/", (req, res) => {
   res.send("Welcome to the REST API!");
 });
 
-app.get(/user\/:id/, (req, res) => {
+app.get("/user\/:id", (req, res) => {
   res.send("Users endpoint is under construction.");
 });
 
-app.get(/products/, (req, res) => {
+app.get("/products", (req, res) => {
   res.send("Products endpoint is under construction.");
 });
 
-app.get(/products\/:id/, (req, res) => {
+app.get("/products\/:id", (req, res) => {
   const { id } = req.params;
   res.send(`Product with ID ${id} is under construction.`);
 });
 
-app.post("/product/", (req, res) => {
+app.post("/product", (req, res) => {
   const product = req.body;
   res.status(201).send(`Product created: ${JSON.stringify(product)}`);
 });
 
-app.get(/comments/, (req, res) => {
+app.get("/comments", (req, res) => {
   res.send("Products endpoint is under construction.");
 });
 
-app.get(/comments\/:id/, (req, res) => {
+app.get("/comments\/:id", (req, res) => {
   const { id } = req.params;
   res.send(`Product with ID ${id} is under construction.`);
 });
 
-app.post("/comment/", (req, res) => {
+app.post("/comment", (req, res) => {
   const product = req.body;
   res.status(201).send(`Comments created: ${JSON.stringify(product)}`);
 });

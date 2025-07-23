@@ -3,21 +3,29 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node src/index.ts",
-    "test": "echo Error: no test specified && exit 1"
+    "dev": "ts-node index.ts",
+    "test": "jest",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@babel/preset-env": "^7.28.0",
+    "@babel/preset-typescript": "^7.27.1",
+    "@jest/globals": "^30.0.5",
     "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.18",
     "@types/express": "^5.0.1",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.13.13",
+    "@types/supertest": "^6.0.3",
+    "babel-jest": "^30.0.5",
+    "jest": "^30.0.5",
     "prisma": "^6.5.0",
-    "ts-node": "^10.9.2",
+    "supertest": "^7.1.4",
+    "ts-jest": "^29.4.0",
     "typescript": "^5.8.2"
   },
   "dependencies": {

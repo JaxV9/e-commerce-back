@@ -24,3 +24,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
     console.log(`REST API server ready at: http://localhost:${PORT}`)
     );
+
+export default app

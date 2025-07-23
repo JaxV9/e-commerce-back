@@ -3,6 +3,7 @@ import express from "express";
 import dotenv from "dotenv";
 import { Utils } from "./utils";
 import { UserController } from "./controllers/user.controller";
+import { ProductController } from "./controllers/product.controller";
 import { PrismaClient } from "@prisma/client";
 
 const app = express();
@@ -11,6 +12,7 @@ dotenv.config();
 const prisma = new PrismaClient();
 const utils = new Utils();
 const userController = new UserController(prisma, utils);
+const productController = new ProductController(prisma);
 
 app.use(
   cors({
@@ -36,18 +38,18 @@ app.get(/user\/:id/, (req, res) => {
   res.send("Users endpoint is under construction.");
 });
 
-app.get(/products/, (req, res) => {
-  res.send("Products endpoint is under construction.");
+app.get(/products/, async (req, res) => {
+  await productController.getAllProducts(req, res);
 });
 
-app.get(/products\/:id/, (req, res) => {
+app.get(/products\/:id/, async (req, res) => {
   const { id } = req.params;
-  res.send(`Product with ID ${id} is under construction.`);
+  await productController.getProductById(id, res);
 });
 
 app.post("/product/", (req, res) => {
-  const product = req.body;
-  res.status(201).send(`Product created: ${JSON.stringify(product)}`);
+  //const product = req.body;
+  productController.createProduct(req, res);
 });
 
 app.get(/comments/, (req, res) => {

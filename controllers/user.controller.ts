@@ -1,5 +1,4 @@
-import { Prisma, PrismaClient } from "@prisma/client";
-import { DefaultArgs } from "@prisma/client/runtime/library";
+import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
 import { Utils } from "../utils";
@@ -8,7 +7,7 @@ import { Login, Signup } from "../models";
 export class UserController {
   constructor(private prisma: PrismaClient, private utils: Utils) {}
 
-  async createUserSession(userId: string): Promise<string> {
+  async createUserSession(userId: string) {
     const token = this.utils.generateToken();
     const now = new Date();
     const expireAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
@@ -20,7 +19,6 @@ export class UserController {
         userId: userId,
       },
     });
-
     return token;
   }
 
@@ -59,9 +57,10 @@ export class UserController {
       res.sendStatus(500);
       return;
     }
-    const token = await this.createUserSession(currentUser.id);
 
-    res.status(201).json({ token: token });
+    const token = await this.createUserSession(currentUser.id);
+    res.setHeader("Set-Cookie", `token=${token}; Max-Age=3600`);
+    res.status(201).json();
     return;
   }
 
@@ -93,10 +92,9 @@ export class UserController {
       await this.deleteUserSession(currentUser.id);
     }
 
-    const token = await this.createUserSession(currentUser.id);
-
+    const token = this.utils.generateToken();
+    res.setHeader("Set-Cookie", `token=${token}; Max-Age=3600`);
     res.status(200).json({
-      token: token,
       userName: currentUser.name,
       email: currentUser.email,
     });

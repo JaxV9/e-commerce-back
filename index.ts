@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import { Utils } from "./utils";
 import { UserController } from "./controllers/user.controller";
 import { PrismaClient } from "@prisma/client";
+import cookieParser from "cookie-parser";
 
 const app = express();
 dotenv.config();
@@ -16,7 +17,8 @@ app.use(
   cors({
     origin: `${process.env.API_BASE_URL}`,
     credentials: true,
-  })
+  }),
+  cookieParser()
 );
 app.use(express.json());
 

@@ -7,7 +7,7 @@ export class ProductController {
   async getAllProducts(_req: Request, res: Response) {
     const products = await this.prisma.product.findMany({
       include: {
-        user: { select: { id: true, name: true, email: true } },
+        user: { select: { name: true, email: true } },
         comments: true,
       },
     });
@@ -19,7 +19,7 @@ export class ProductController {
     const product = await this.prisma.product.findUnique({
       where: { id },
       include: {
-        user: { select: { id: true, name: true, email: true } },
+        user: { select: { name: true, email: true } },
         comments: true,
       },
     });
@@ -33,9 +33,18 @@ export class ProductController {
   }
 
   async createProduct(req: Request, res: Response) {
-    const { title, description, imageUrl, userId } = req.body;
 
-    if (!title || !description || !imageUrl || !userId) {
+    const token = req.headers["authorization"]?.split(" ")[1];
+    const tokenFind = await this.prisma.token.findUnique({
+        where: { id: token },
+        include: { user: { select: { id: true } } },
+    });
+
+    const userId = tokenFind?.userId;
+
+    const { title, description, imageUrl } = req.body;
+
+    if (!title || !description || !imageUrl) {
       res.status(400).json({ error: "Missing required fields" });
       return;
     }

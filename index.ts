@@ -5,6 +5,7 @@ import { Utils } from "./utils";
 import { UserController } from "./controllers/user.controller";
 import { ProductController } from "./controllers/product.controller";
 import { PrismaClient } from "@prisma/client";
+import { authenticateToken } from "./middleware/auth.middleware";
 
 const app = express();
 dotenv.config();
@@ -38,17 +39,16 @@ app.get(/user\/:id/, (req, res) => {
   res.send("Users endpoint is under construction.");
 });
 
-app.get(/products/, async (req, res) => {
+app.get(/products/, authenticateToken, async (req, res) => {
   await productController.getAllProducts(req, res);
 });
 
-app.get(/products\/:id/, async (req, res) => {
+app.get(/products\/:id/, authenticateToken, async (req, res) => {
   const { id } = req.params;
   await productController.getProductById(id, res);
 });
 
-app.post("/product/", (req, res) => {
-  //const product = req.body;
+app.post("/product/", authenticateToken, (req, res) => {
   productController.createProduct(req, res);
 });
 

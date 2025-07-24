@@ -46,6 +46,10 @@ app.post("/api/login", async (req, res) => {
   await userController.login(req, res);
 });
 
+app.post("/api/logout", authenticateToken, async (req, res) => {
+  await userController.logout(req, res);
+});
+
 app.get("/", (req, res) => {
   res.send("Welcome to the REST API!");
 });

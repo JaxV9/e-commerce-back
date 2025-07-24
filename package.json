@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "dev": "ts-node index.ts",
-    "test": "jest --forceExit",
     "build": "tsc",
-    "start": "node dist/index"
+    "start": "node dist/index",
+    "dev": "ts-node index.ts",
+    "test": "jest --forceExit"
   },
   "keywords": [],
   "author": "",

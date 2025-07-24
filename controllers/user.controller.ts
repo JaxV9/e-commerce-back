@@ -92,7 +92,7 @@ export class UserController {
       await this.deleteUserSession(currentUser.id);
     }
 
-    const token = this.utils.generateToken();
+    const token = await this.createUserSession(currentUser.id);
     res.setHeader("Set-Cookie", `token=${token}; Max-Age=3600`);
     res.status(200).json({
       userName: currentUser.name,

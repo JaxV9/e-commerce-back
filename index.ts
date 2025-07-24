@@ -50,7 +50,7 @@ app.get("/", (req, res) => {
   res.send("Welcome to the REST API!");
 });
 
-app.get("/api/user/", async (req, res) => {
+app.get("/api/user/", authenticateToken, async (req, res) => {
   await userController.getUserInfo(req, res);
 });
 app.get("/api/products/", async (req, res) => {

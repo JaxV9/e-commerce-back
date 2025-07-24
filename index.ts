@@ -50,8 +50,8 @@ app.get("/", (req, res) => {
   res.send("Welcome to the REST API!");
 });
 
-app.get("/api/user/:id", (req, res) => {
-  res.send("Users endpoint is under construction.");
+app.get("/api/user/", async (req, res) => {
+  await userController.getUserInfo(req, res);
 });
 app.get("/api/products/", async (req, res) => {
   await productController.getAllProducts(req, res);

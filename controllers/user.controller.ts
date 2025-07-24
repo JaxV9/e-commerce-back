@@ -75,7 +75,7 @@ export class UserController {
       where: { email },
     });
     if (!currentUser) {
-      res.sendStatus(404);
+      res.sendStatus(403);
       return;
     }
     const passwordIsValid = await bcrypt.compare(
@@ -100,6 +100,19 @@ export class UserController {
       email: currentUser.email,
     });
     return;
+  }
+
+  async logout(req: AuthRequest, res: Response) {
+    try {
+      await this.prisma.token.delete({
+        where: { userId: req.user!.userId },
+      });
+
+      res.setHeader("Set-Cookie", "token=; Max-Age=0; HttpOnly");
+      res.status(200).json();
+    } catch (error) {
+      res.status(500).json();
+    }
   }
 
   async getUserInfo(req: AuthRequest, res: Response) {

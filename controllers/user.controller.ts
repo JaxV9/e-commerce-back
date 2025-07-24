@@ -102,6 +102,19 @@ export class UserController {
     return;
   }
 
+  async logout(req: AuthRequest, res: Response) {
+    try {
+      await this.prisma.token.delete({
+        where: { userId: req.user!.userId },
+      });
+
+      res.setHeader("Set-Cookie", "token=; Max-Age=0; HttpOnly");
+      res.status(200).json();
+    } catch (error) {
+      res.status(500).json();
+    }
+  }
+
   async getUserInfo(req: AuthRequest, res: Response) {
     const user = await this.prisma.user.findFirst({
       where: { id: req.params.id },

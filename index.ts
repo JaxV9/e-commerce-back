@@ -6,6 +6,8 @@ import { UserController } from "./controllers/user.controller";
 import { ProductController } from "./controllers/product.controller";
 import { PrismaClient } from "@prisma/client";
 import { authenticateToken } from "./middleware/auth.middleware";
+import cookieParser from "cookie-parser";
+
 
 const app = express();
 dotenv.config();
@@ -19,7 +21,8 @@ app.use(
   cors({
     origin: `${process.env.API_BASE_URL}`,
     credentials: true,
-  })
+  }),
+  cookieParser()
 );
 app.use(express.json());
 
@@ -35,33 +38,36 @@ app.get("/", (req, res) => {
   res.send("Welcome to the REST API!");
 });
 
-app.get(/user\/:id/, (req, res) => {
+app.get("/user/:id", (req, res) => {
   res.send("Users endpoint is under construction.");
 });
+
 
 app.get(/products/, authenticateToken, async (req, res) => {
   await productController.getAllProducts(req, res);
 });
 
 app.get(/products\/:id/, authenticateToken, async (req, res) => {
+
   const { id } = req.params;
   await productController.getProductById(id, res);
 });
+
 
 app.post("/product/", authenticateToken, (req, res) => {
   productController.createProduct(req, res);
 });
 
-app.get(/comments/, (req, res) => {
+app.get("/comments", (req, res) => {
   res.send("Products endpoint is under construction.");
 });
 
-app.get(/comments\/:id/, (req, res) => {
+app.get("/comments/:id", (req, res) => {
   const { id } = req.params;
   res.send(`Product with ID ${id} is under construction.`);
 });
 
-app.post("/comment/", (req, res) => {
+app.post("/comment", (req, res) => {
   const product = req.body;
   res.status(201).send(`Comments created: ${JSON.stringify(product)}`);
 });

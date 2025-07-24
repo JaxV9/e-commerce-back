@@ -9,7 +9,7 @@ import winston from "winston";
 import morgan from 'morgan'
 import cookieParser from "cookie-parser";
 import client from 'prom-client'
-import { getMetrics, metricsMiddleware } from './controllers/metric.controller'
+import {getMetrics, logger, metricsMiddleware} from './controllers/metric.controller'
 
 const app = express();
 const register = new client.Registry()
@@ -19,13 +19,6 @@ const prisma = new PrismaClient();
 const utils = new Utils();
 const userController = new UserController(prisma, utils);
 
-const logger = winston.createLogger({
-  level: 'info',
-  transports: [
-    new winston.transports.Console(),
-    new winston.transports.File({filename: 'errors.log', level: 'error'}),
-  ],
-})
 
 app.use(
     cors({
@@ -36,14 +29,12 @@ app.use(
       stream: {
         write: (message) => logger.info(message.trim()),
       },}),
-    cookieParser()
+    cookieParser(),
+    metricsMiddleware
     );
 app.use(express.json());
 
 
-// ========== MIDDLEWARE DE MÉTRIQUES ==========
-
-app.use(metricsMiddleware)
 
 app.post("/api/signup", async (req, res) => {
   await userController.createUser(req, res);

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import client from 'prom-client'
 import os from 'os'
+import winston from "winston";
 
 // Crée un registre Prometheus
 const register = new client.Registry()
@@ -87,3 +88,11 @@ export const metricsMiddleware = (req: Request, res: Response, next: () => void)
     })
     next()
 }
+
+export const logger = winston.createLogger({
+    level: 'info',
+    transports: [
+        new winston.transports.Console(),
+        new winston.transports.File({filename: 'errors.log', level: 'error'}),
+    ],
+})

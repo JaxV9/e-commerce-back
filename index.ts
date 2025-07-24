@@ -16,7 +16,6 @@ import { ProductController } from "./controllers/products.controller";
 import { authenticateToken } from "./middleware/auth.middleware";
 
 const app = express();
-const register = new client.Registry();
 dotenv.config();
 
 const prisma = new PrismaClient();
@@ -26,7 +25,7 @@ const productController = new ProductController(prisma);
 
 app.use(
   cors({
-    origin: `${process.env.API_BASE_URL}`,
+    origin: true,
     credentials: true,
   }),
   morgan("combined", {

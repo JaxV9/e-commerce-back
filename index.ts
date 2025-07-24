@@ -9,6 +9,7 @@ import winston from "winston";
 import morgan from 'morgan'
 import cookieParser from "cookie-parser";
 import client from 'prom-client'
+import { getMetrics, metricsMiddleware } from './controllers/metric.controller'
 
 const app = express();
 const register = new client.Registry()
@@ -39,61 +40,10 @@ app.use(
     );
 app.use(express.json());
 
-// ========== MÉTRIQUES ==========
-
-const httpRequestCounter = new client.Counter({
-  name: 'http_requests_total',
-  help: 'Nombre total de requêtes',
-  labelNames: ['method', 'route', 'status_code'],
-})
-
-const errorCounter = new client.Counter({
-  name: 'http_errors_total',
-  help: 'Nombre total d’erreurs (code >= 400)',
-  labelNames: ['method', 'route', 'status_code'],
-})
-
-const latencyHistogram = new client.Histogram({
-  name: 'http_request_duration_seconds',
-  help: 'Durée des requêtes en secondes',
-  labelNames: ['method', 'route', 'status_code'],
-  buckets: [0.1, 0.3, 0.5, 1, 1.5, 2, 5],
-})
-
-const cpuGauge = new client.Gauge({
-  name: 'cpu_usage_percent',
-  help: 'Utilisation CPU (%)',
-})
-
-const ramGauge = new client.Gauge({
-  name: 'ram_usage_percent',
-  help: 'Utilisation RAM (%)',
-})
-
-register.registerMetric(httpRequestCounter)
-register.registerMetric(errorCounter)
-register.registerMetric(latencyHistogram)
-register.registerMetric(cpuGauge)
-register.registerMetric(ramGauge)
 
 // ========== MIDDLEWARE DE MÉTRIQUES ==========
 
-app.use((req, res, next) => {
-  const end = latencyHistogram.startTimer()
-  res.on('finish', () => {
-    const labels = {
-      method: req.method,
-      route: req.route?.path || req.path,
-      status_code: res.statusCode.toString(),
-    }
-
-    httpRequestCounter.inc(labels)
-    if (res.statusCode >= 400) errorCounter.inc(labels)
-
-    end(labels)
-  })
-  next()
-})
+app.use(metricsMiddleware)
 
 app.post("/api/signup", async (req, res) => {
   await userController.createUser(req, res);
@@ -146,29 +96,11 @@ app.get('/api/simulate-error', (req, res) => {
 
 // ========== ROUTE DES MÉTRIQUES ==========
 
-app.get('/api/metrics', async (req, res) => {
-  // CPU / RAM
-  const cpus = os.cpus()
-  const cpuLoad =
-      cpus.reduce((acc, cpu) => {
-        const total = Object.values(cpu.times).reduce((a, b) => a + b, 0)
-        return acc + (cpu.times.user + cpu.times.sys) / total
-      }, 0) / cpus.length
-
-  cpuGauge.set(cpuLoad * 100)
-
-  const totalMem = os.totalmem()
-  const usedMem = totalMem - os.freemem()
-  ramGauge.set((usedMem / totalMem) * 100)
-
-  res.set('Content-Type', register.contentType)
-  res.end(await register.metrics())
-})
-
+app.get('/api/metrics', getMetrics)
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
-    console.log(`REST API server ready at: http://localhost:${PORT}`)
+    logger.info(`REST API server ready at: http://localhost:${PORT}`)
 );
 
 export default app;

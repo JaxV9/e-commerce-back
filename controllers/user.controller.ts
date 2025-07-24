@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { Request, Response } from "express";
 import { Utils } from "../utils";
 import { Login, Signup } from "../models";
+import { AuthRequest } from "../middleware/auth.middleware";
 
 export class UserController {
   constructor(private prisma: PrismaClient, private utils: Utils) {}
@@ -99,5 +100,22 @@ export class UserController {
       email: currentUser.email,
     });
     return;
+  }
+
+  async getUserInfo(req: AuthRequest, res: Response) {
+    const user = await this.prisma.user.findFirst({
+      where: { id: req.params.id },
+    });
+    if (user) {
+      return res.status(200).json({
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        createdAt: user.createdAt,
+        updateAt: user.updatedAt,
+      });
+    } else {
+      return res.status(404).json();
+    }
   }
 }

@@ -12,6 +12,7 @@ import client from 'prom-client'
 import { getMetrics, metricsMiddleware } from './controllers/metric.controller'
 
 const app = express();
+const register = new client.Registry()
 dotenv.config();
 
 const prisma = new PrismaClient();

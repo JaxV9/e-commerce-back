@@ -1,9 +1,12 @@
 import cors from "cors";
 import express from "express";
 import dotenv from "dotenv";
-import { Utils } from "./utils";
-import { UserController } from "./controllers/user.controller";
-import { PrismaClient } from "@prisma/client";
+import {Utils} from "./utils";
+import {UserController} from "./controllers/user.controller";
+import {PrismaClient} from "@prisma/client";
+import * as os from "os";
+import winston from "winston";
+import morgan from 'morgan'
 import cookieParser from "cookie-parser";
 
 const app = express();
@@ -13,13 +16,25 @@ const prisma = new PrismaClient();
 const utils = new Utils();
 const userController = new UserController(prisma, utils);
 
+const logger = winston.createLogger({
+  level: 'info',
+  transports: [
+    new winston.transports.Console(),
+    new winston.transports.File({filename: 'errors.log', level: 'error'}),
+  ],
+})
+
 app.use(
-  cors({
-    origin: `${process.env.API_BASE_URL}`,
-    credentials: true,
-  }),
-  cookieParser()
-);
+    cors({
+      origin: `${process.env.API_BASE_URL}`,
+      credentials: true,
+    }),
+    morgan('combined', {
+      stream: {
+        write: (message) => logger.info(message.trim()),
+      },}),
+    cookieParser()
+    );
 app.use(express.json());
 
 app.post("/api/signup", async (req, res) => {
@@ -65,6 +80,13 @@ app.post("/comment", (req, res) => {
   const product = req.body;
   res.status(201).send(`Comments created: ${JSON.stringify(product)}`);
 });
+
+app.get('/simulate-error', (req, res) => {
+  logger.error('Erreur simulée')
+  res.status(500).send('Erreur interne simulée')
+})
+
+// ========== ROUTE DES MÉTRIQUES ==========
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>

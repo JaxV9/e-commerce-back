@@ -13,6 +13,7 @@ export async function authenticateToken(
   next: NextFunction
 ) {
   const token = req.cookies?.token;
+  console.log(token);
   if (!token) {
     res.status(401).json({ message: "Token manquant." });
     return;
@@ -21,6 +22,7 @@ export async function authenticateToken(
     where: { id: token },
     include: { user: { select: { id: true, email: true } } },
   });
+  console.log(tokenRow);
 
   if (!tokenRow) {
     res.status(403).json({ message: "Token invalide." });

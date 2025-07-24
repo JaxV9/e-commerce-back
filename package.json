@@ -6,7 +6,7 @@
     "build": "tsc",
     "start": "node dist/index",
     "dev": "ts-node index.ts",
-    "test": "jest --forceExit"
+    "test": "jest --forceExit",
     "server": "nodemon index.js"
   },
   "keywords": [],

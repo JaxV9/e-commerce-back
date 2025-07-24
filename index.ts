@@ -13,6 +13,7 @@ import {
   metricsMiddleware,
 } from "./controllers/metric.controller";
 import { ProductController } from "./controllers/products.controller";
+import { CommentsController } from "./controllers/comments.controller";
 import { authenticateToken } from "./middleware/auth.middleware";
 
 const app = express();
@@ -23,6 +24,7 @@ const prisma = new PrismaClient();
 const utils = new Utils();
 const userController = new UserController(prisma, utils);
 const productController = new ProductController(prisma);
+const commentsController = new CommentsController(prisma);
 
 app.use(
   cors({
@@ -59,25 +61,31 @@ app.get("/api/products/", async (req, res) => {
 });
 
 app.get("/api/products/:id/", async (req, res) => {
-  productController.getProductById(req, res);
+  await productController.getProductById(req, res);
 });
 
 app.post("/api/product/", authenticateToken, async (req, res) => {
   await productController.createProduct(req, res);
 });
 
-app.get("/api/comments", (req, res) => {
-  res.send("Products endpoint is under construction.");
+app.get("/api/comments", async (req, res) => {
+  await commentsController.getAllComments(req, res);
 });
 
-app.get("/api/comments/:id", (req, res) => {
-  const { id } = req.params;
-  res.send(`Product with ID ${id} is under construction.`);
+app.get("/api/comments/:id", async (req, res) => {
+  await commentsController.getCommentById(req, res);
 });
 
-app.post("/api/comment", (req, res) => {
-  const product = req.body;
-  res.status(201).send(`Comments created: ${JSON.stringify(product)}`);
+app.post("/api/comment", authenticateToken, async (req, res) => {
+  await commentsController.createComment(req, res);
+});
+
+app.put("/api/comment/:id", authenticateToken, async (req, res) => {
+  await commentsController.updateComment(req, res);
+});
+
+app.delete("/api/comment/:id", authenticateToken, async (req, res) => {
+  await commentsController.deleteComment(req, res);
 });
 
 app.get("/api/simulate-error", (req, res) => {

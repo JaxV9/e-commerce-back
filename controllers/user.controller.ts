@@ -75,7 +75,7 @@ export class UserController {
       where: { email },
     });
     if (!currentUser) {
-      res.sendStatus(404);
+      res.sendStatus(403);
       return;
     }
     const passwordIsValid = await bcrypt.compare(

@@ -118,6 +118,20 @@ See `prisma/schema.prisma` for details.
 
 ---
 
+## 📈 Performance serveur 
+
+We use prometheus to monitor our serveur and the resources consumed. 
+
+### CPU usage in % 
+<img src="img/cpu_usage.png"></img>
+
+
+### RAM usage in %
+<img src="img/ram_usage.png"></img>
+
+
+---
+
 ## 🛠 Makefile Commands
 
 | Command                 | Description                          |

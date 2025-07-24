@@ -3,7 +3,7 @@ import express from 'express'
 import bodyParser from 'body-parser'
 import { ProductController } from '../controllers/products.controller'
 import { authenticateToken } from '../middleware/auth.middleware'
-import { describe, test, expect } from '@jest/globals'
+import {beforeEach, describe, expect, jest, test} from "@jest/globals";
 
 jest.mock('../middleware/auth.middleware')
 

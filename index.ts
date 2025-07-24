@@ -49,44 +49,64 @@ app.get("/", (req, res) => {
   res.send("Welcome to the REST API!");
 });
 
-app.get("/user/:id", (req, res) => {
+app.get("/api/user/:id", (req, res) => {
   res.send("Users endpoint is under construction.");
 });
 
-app.get("/products", (req, res) => {
+app.get("/api/products", (req, res) => {
   res.send("Products endpoint is under construction.");
 });
 
-app.get("/products/:id", (req, res) => {
-  const { id } = req.params;
+app.get("/api/products/:id", (req, res) => {
+  const {id} = req.params;
   res.send(`Product with ID ${id} is under construction.`);
 });
 
-app.post("/product", (req, res) => {
+app.post("/api/product", (req, res) => {
   const product = req.body;
   res.status(201).send(`Product created: ${JSON.stringify(product)}`);
 });
 
-app.get("/comments", (req, res) => {
+app.get("/api/comments", (req, res) => {
   res.send("Products endpoint is under construction.");
 });
 
-app.get("/comments/:id", (req, res) => {
-  const { id } = req.params;
+app.get("/api/comments/:id", (req, res) => {
+  const {id} = req.params;
   res.send(`Product with ID ${id} is under construction.`);
 });
 
-app.post("/comment", (req, res) => {
+app.post("/api/comment", (req, res) => {
   const product = req.body;
   res.status(201).send(`Comments created: ${JSON.stringify(product)}`);
 });
 
-app.get('/simulate-error', (req, res) => {
+app.get('/api/simulate-error', (req, res) => {
   logger.error('Erreur simulée')
   res.status(500).send('Erreur interne simulée')
 })
 
 // ========== ROUTE DES MÉTRIQUES ==========
+
+app.get('/api/metrics', async (req, res) => {
+  // CPU / RAM
+  const cpus = os.cpus()
+  const cpuLoad =
+      cpus.reduce((acc, cpu) => {
+        const total = Object.values(cpu.times).reduce((a, b) => a + b, 0)
+        return acc + (cpu.times.user + cpu.times.sys) / total
+      }, 0) / cpus.length
+
+  cpuGauge.set(cpuLoad * 100)
+
+  const totalMem = os.totalmem()
+  const usedMem = totalMem - os.freemem()
+  ramGauge.set((usedMem / totalMem) * 100)
+
+  res.set('Content-Type', register.contentType)
+  res.end(await register.metrics())
+})
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>

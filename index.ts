@@ -8,6 +8,8 @@ import * as os from "os";
 import winston from "winston";
 import morgan from 'morgan'
 import cookieParser from "cookie-parser";
+import client from 'prom-client'
+import { getMetrics, metricsMiddleware } from './controllers/metric.controller'
 
 const app = express();
 dotenv.config();
@@ -36,6 +38,11 @@ app.use(
     cookieParser()
     );
 app.use(express.json());
+
+
+// ========== MIDDLEWARE DE MÉTRIQUES ==========
+
+app.use(metricsMiddleware)
 
 app.post("/api/signup", async (req, res) => {
   await userController.createUser(req, res);
@@ -88,29 +95,11 @@ app.get('/api/simulate-error', (req, res) => {
 
 // ========== ROUTE DES MÉTRIQUES ==========
 
-app.get('/api/metrics', async (req, res) => {
-  // CPU / RAM
-  const cpus = os.cpus()
-  const cpuLoad =
-      cpus.reduce((acc, cpu) => {
-        const total = Object.values(cpu.times).reduce((a, b) => a + b, 0)
-        return acc + (cpu.times.user + cpu.times.sys) / total
-      }, 0) / cpus.length
-
-  cpuGauge.set(cpuLoad * 100)
-
-  const totalMem = os.totalmem()
-  const usedMem = totalMem - os.freemem()
-  ramGauge.set((usedMem / totalMem) * 100)
-
-  res.set('Content-Type', register.contentType)
-  res.end(await register.metrics())
-})
-
+app.get('/api/metrics', getMetrics)
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
-  console.log(`REST API server ready at: http://localhost:${PORT}`)
+    logger.info(`REST API server ready at: http://localhost:${PORT}`)
 );
 
 export default app;

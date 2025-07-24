@@ -1,117 +1,137 @@
-import request from 'supertest'
-import express from 'express'
-import bodyParser from 'body-parser'
+
 import { ProductController } from '../controllers/products.controller'
-import { authenticateToken } from '../middleware/auth.middleware'
 import {beforeEach, describe, expect, jest, test} from "@jest/globals";
 
-jest.mock('../middleware/auth.middleware')
+import { Request, Response } from "express";
+
+// Mock des fonctions Prisma
+const mockFindMany = jest.fn();
+const mockFindUnique = jest.fn();
+const mockCreate = jest.fn();
 
 const mockPrisma = {
     product: {
-        findMany: jest.fn(),
-        findUnique: jest.fn(),
-        create: jest.fn(),
-    }
-}
+        findMany: mockFindMany,
+        findUnique: mockFindUnique,
+        create: mockCreate,
+    },
+} as any; // <-- le as any évite les erreurs TS2345/TS18046
 
-const productController = new ProductController(mockPrisma as any)
+const controller = new ProductController(mockPrisma);
 
-const app = express()
-app.use(bodyParser.json())
+// Mock de la response
+const res = {
+    status: jest.fn().mockReturnThis(),
+    json: jest.fn(),
+    sendStatus: jest.fn(),
+} as unknown as Response;
 
-;(authenticateToken as jest.Mock).mockImplementation((_req, _res, next) => {
-    (_req as any).user = { userId: 'mock-user-id' }
-    next()
-})
+beforeEach(() => {
+    jest.clearAllMocks();
+});
 
-app.get('/api/products/', (req, res) => productController.getAllProducts(req, res))
-app.get('/api/products/:id/', (req, res) => productController.getProductById(req, res))
-app.post('/api/product/', authenticateToken, (req, res) => productController.createProduct(req, res))
+describe("ProductController", () => {
+    test("getAllProducts - success", async () => {
+        const fakeProducts = [{ id: "1", title: "Test Product" }];
+        mockFindMany.mockImplementation(() => Promise.resolve(fakeProducts));
 
-describe('ProductController', () => {
-    beforeEach(() => {
-        jest.clearAllMocks()
-    })
+        await controller.getAllProducts({} as Request, res);
 
-    test('GET /api/products/ - should return products list', async () => {
-        const mockProducts = [{ id: '1', title: 'Product 1' }]
-        mockPrisma.product.findMany.mockResolvedValue(mockProducts)
+        expect(mockFindMany).toHaveBeenCalled();
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith(fakeProducts);
+    });
 
-        const res = await request(app).get('/api/products/')
+    test("getProductById - found", async () => {
+        const fakeProduct = { id: "1", title: "Test Product" };
+        mockFindUnique.mockImplementation(() => Promise.resolve(fakeProduct));
 
-        expect(res.status).toBe(200)
-        expect(res.body).toEqual(mockProducts)
-        expect(mockPrisma.product.findMany).toHaveBeenCalled()
-    })
+        const req = { params: { id: "1" } } as unknown as Request;
 
-    test('GET /api/products/:id/ - returns product if found', async () => {
-        const mockProduct = { id: '123', title: 'Product 123' }
-        mockPrisma.product.findUnique.mockResolvedValue(mockProduct)
+        await controller.getProductById(req, res);
 
-        const res = await request(app).get('/api/products/123/')
-
-        expect(res.status).toBe(200)
-        expect(res.body).toEqual(mockProduct)
-        expect(mockPrisma.product.findUnique).toHaveBeenCalledWith({
-            where: { id: '123' },
-            include: { user: { select: { name: true, email: true } }, comments: true }
-        })
-    })
-
-    test('GET /api/products/:id/ - returns 404 if not found', async () => {
-        mockPrisma.product.findUnique.mockResolvedValue(null)
-
-        const res = await request(app).get('/api/products/999/')
-
-        expect(res.status).toBe(404)
-    })
-
-    test('POST /api/product/ - creates product if data valid', async () => {
-        const productData = {
-            title: 'New Product',
-            description: 'Test desc',
-            imageUrl: 'https://image.url',
-        }
-
-        const createdProduct = { ...productData, id: 'p1' }
-        mockPrisma.product.create.mockResolvedValue(createdProduct)
-
-        const res = await request(app)
-            .post('/api/product/')
-            .send(productData)
-
-        expect(res.status).toBe(201)
-        expect(res.body).toEqual(createdProduct)
-        expect(mockPrisma.product.create).toHaveBeenCalledWith({
-            data: {
-                ...productData,
-                userId: 'mock-user-id',
+        expect(mockFindUnique).toHaveBeenCalledWith({
+            where: { id: "1" },
+            include: {
+                user: { select: { name: true, email: true } },
+                comments: true,
             },
-        })
-    })
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith(fakeProduct);
+    });
 
-    test('POST /api/product/ - returns 400 on missing fields', async () => {
-        const res = await request(app)
-            .post('/api/product/')
-            .send({ title: 'Incomplete' })
+    test("getProductById - not found", async () => {
+        mockFindUnique.mockImplementation(() => Promise.resolve(null));
 
-        expect(res.status).toBe(400)
-        expect(res.body.error).toBe('Missing required fields')
-    })
+        const req = { params: { id: "123" } } as unknown as Request;
 
-    test('POST /api/product/ - returns 500 on Prisma error', async () => {
-        mockPrisma.product.create.mockRejectedValue(new Error('DB error'))
+        await controller.getProductById(req, res);
 
-        const res = await request(app)
-            .post('/api/product/')
-            .send({
-                title: 'ErrorProduct',
-                description: 'x',
-                imageUrl: 'x',
-            })
+        expect(res.sendStatus).toHaveBeenCalledWith(404);
+    });
 
-        expect(res.status).toBe(500)
-        expect(res.body.error).toBe('Could not create product')
-    })
-})
+    test("createProduct - success", async () => {
+        const newProduct = {
+            id: "1",
+            title: "New Product",
+            description: "Description",
+            imageUrl: "image.png",
+        };
+        mockCreate.mockImplementation(() => Promise.resolve(newProduct));
+
+        const req = {
+            body: {
+                title: "New Product",
+                description: "Description",
+                imageUrl: "image.png",
+            },
+            user: { userId: "user-123" },
+        } as any;
+
+        await controller.createProduct(req, res);
+
+        expect(mockCreate).toHaveBeenCalledWith({
+            data: {
+                title: "New Product",
+                description: "Description",
+                imageUrl: "image.png",
+                userId: "user-123",
+            },
+        });
+        expect(res.status).toHaveBeenCalledWith(201);
+        expect(res.json).toHaveBeenCalledWith(newProduct);
+    });
+
+    test("createProduct - missing fields", async () => {
+        const req = {
+            body: { title: "", description: "", imageUrl: "" },
+            user: { userId: "user-123" },
+        } as any;
+
+        await controller.createProduct(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({ error: "Missing required fields" });
+    });
+
+    test("createProduct - internal error", async () => {
+        mockCreate.mockImplementation(() => {
+            throw new Error("DB error");
+        });
+
+        const req = {
+            body: {
+                title: "A",
+                description: "B",
+                imageUrl: "C",
+            },
+            user: { userId: "user-123" },
+        } as any;
+
+        await controller.createProduct(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({ error: "Could not create product" });
+    });
+});

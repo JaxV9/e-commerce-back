@@ -1,26 +1,40 @@
 import cors from "cors";
 import express from "express";
 import dotenv from "dotenv";
-import { Utils } from "./utils";
-import { UserController } from "./controllers/user.controller";
-import { PrismaClient } from "@prisma/client";
+import {Utils} from "./utils";
+import {UserController} from "./controllers/user.controller";
+import {PrismaClient} from "@prisma/client";
+import * as os from "os";
+import winston from "winston";
+import morgan from 'morgan'
 import cookieParser from "cookie-parser";
+import client from 'prom-client'
+import {getMetrics, logger, metricsMiddleware} from './controllers/metric.controller'
 
 const app = express();
+const register = new client.Registry()
 dotenv.config();
 
 const prisma = new PrismaClient();
 const utils = new Utils();
 const userController = new UserController(prisma, utils);
 
+
 app.use(
-  cors({
-    origin: `${process.env.API_BASE_URL}`,
-    credentials: true,
-  }),
-  cookieParser()
-);
+    cors({
+      origin: `${process.env.API_BASE_URL}`,
+      credentials: true,
+    }),
+    morgan('combined', {
+      stream: {
+        write: (message) => logger.info(message.trim()),
+      },}),
+    cookieParser(),
+    metricsMiddleware
+    );
 app.use(express.json());
+
+
 
 app.post("/api/signup", async (req, res) => {
   await userController.createUser(req, res);
@@ -34,41 +48,50 @@ app.get("/", (req, res) => {
   res.send("Welcome to the REST API!");
 });
 
-app.get("/user/:id", (req, res) => {
+app.get("/api/user/:id", (req, res) => {
   res.send("Users endpoint is under construction.");
 });
 
-app.get("/products", (req, res) => {
+app.get("/api/products", (req, res) => {
   res.send("Products endpoint is under construction.");
 });
 
-app.get("/products/:id", (req, res) => {
-  const { id } = req.params;
+app.get("/api/products/:id", (req, res) => {
+  const {id} = req.params;
   res.send(`Product with ID ${id} is under construction.`);
 });
 
-app.post("/product", (req, res) => {
+app.post("/api/product", (req, res) => {
   const product = req.body;
   res.status(201).send(`Product created: ${JSON.stringify(product)}`);
 });
 
-app.get("/comments", (req, res) => {
+app.get("/api/comments", (req, res) => {
   res.send("Products endpoint is under construction.");
 });
 
-app.get("/comments/:id", (req, res) => {
-  const { id } = req.params;
+app.get("/api/comments/:id", (req, res) => {
+  const {id} = req.params;
   res.send(`Product with ID ${id} is under construction.`);
 });
 
-app.post("/comment", (req, res) => {
+app.post("/api/comment", (req, res) => {
   const product = req.body;
   res.status(201).send(`Comments created: ${JSON.stringify(product)}`);
 });
 
+app.get('/api/simulate-error', (req, res) => {
+  logger.error('Erreur simulée')
+  res.status(500).send('Erreur interne simulée')
+})
+
+// ========== ROUTE DES MÉTRIQUES ==========
+
+app.get('/api/metrics', getMetrics)
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
-  console.log(`REST API server ready at: http://localhost:${PORT}`)
+    logger.info(`REST API server ready at: http://localhost:${PORT}`)
 );
 
 export default app;

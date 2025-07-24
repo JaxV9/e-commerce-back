@@ -26,3 +26,5 @@ amplifytools.xcconfig
 **.sample
 #amplify-do-not-edit-end
 .vercel
+
+package-lock.json

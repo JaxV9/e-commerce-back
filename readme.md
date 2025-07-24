@@ -43,8 +43,8 @@ A backend e-commerce API built with **Node.js**, **Express**, **TypeScript**, an
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/e-commerce.git
-cd e-commerce
+git clone git@github.com:JaxV9/e-commerce-back.git
+cd e-commerce-back
 ```
 
 ### 2. Install Dependencies

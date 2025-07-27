@@ -32,6 +32,14 @@ A backend e-commerce API built with **Node.js**, **Express**, **TypeScript**, an
 
 ---
 
+## 🏗️ Global architecture
+
+Architecture of the complete project 
+
+<img src="img/archi.png"></img>
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
